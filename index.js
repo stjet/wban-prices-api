@@ -3,7 +3,7 @@ addEventListener('fetch', event => {
 })
 
 async function getPrice(market) {
-  return Number.parseFloat(await (await fetch(`https://api.coinex.com/v1/market/ticker?market=${market}`)).json()).data.ticker.last);
+  return Number.parseFloat((await (await fetch(`https://api.coinex.com/v1/market/ticker?market=${market}`)).json()).data.ticker.last);
 }
 
 async function handleRequest(request) {
@@ -11,7 +11,7 @@ async function handleRequest(request) {
     if (request.method === "OPTIONS") {
       return new Response("OK", {
         headers: { 'Access-Control-Allow-Origin': '*' },
-      };
+      });
     } else {
       return new Response(JSON.stringify({
         ban: await getPrice("BANANOUSDT"),
