@@ -20,7 +20,7 @@ async function handleRequest(request) {
 			  matic: await getPrice("POLUSDC"),
 			  ftm: await getPrice("SUSDC"),
       }), {
-        headers: { 'Content-type': 'application/json', 'Cache-control': 'max-age=30, public' },
+        headers: { 'Content-type': 'application/json', 'Cache-control': 'max-age=30, public', 'Access-Control-Allow-Origin': '*' },
       });
     }
   }
