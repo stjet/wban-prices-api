@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { setup } = require("axios-cache-adapter");
+import { env } from "cloudflare:workers";
 
 const app = express();
 const PORT = 3000;
@@ -35,23 +36,27 @@ app.use(
 );
 app.use(express.json());
 
-async function getPrice(market) {
-  let api = setup({
-    cache: {
-      maxAge: 30 * 1000, // cache for 30 seconds
-    },
-  });
-  return Number.parseFloat((await api.request(`https://api.coinex.com/v1/market/ticker?market=${market}`)).data.data.ticker.last);
+async function getPrice(markets) {
+	let api = setup({
+		cache: {
+			maxAge: 90 * 1000, // cache for 90 seconds
+		},
+	});
+	return (await api.request(`https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&ids=${markets}&x_cg_demo_api_key=${env.CG_API_KEY}`)).data;
+	//return Number.parseFloat((await api.request(`https://api.coinex.com/v1/market/ticker?market=${market}`)).data.data.ticker.last);
 }
 
 app.get("/prices", async (req, res) => {
-  res.send({
-    ban: await getPrice("BANANOUSDT"),
-		bnb: await getPrice("BNBUSDC"),
-		eth: await getPrice("ETHUSDC"),
-		matic: await getPrice("POLUSDC"),
-		ftm: await getPrice("SUSDC"),
-  });
+	const resp = await getPrice("banano,binancecoin,ethereum,polygon-ecosystem-token,fantom");
+
+	console.log(resp);
+	res.send({
+		ban: resp["banano"].usd,//await getPrice("BANANOUSDT"),
+		bnb: resp["binancecoin"].usd,
+		eth: resp["ethereum"].usd,
+		matic: resp["polygon-ecosystem-token"].usd,
+		ftm: resp["fantom"].usd,
+	});
 });
 
 app.listen(PORT, async () => {
