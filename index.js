@@ -1,9 +1,12 @@
+import { env } from "cloudflare:workers";
+
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
 })
 
 async function getPrice(market) {
-  return Number.parseFloat((await (await fetch(`https://api.coinex.com/v1/market/ticker?market=${market}`)).json()).data.ticker.last);
+  //return Number.parseFloat((await (await fetch(`https://api.coinex.com/v1/market/ticker?market=${market}`)).json()).data.ticker.last);
+	return await (await fetch(`https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&ids=${markets}&x_cg_demo_api_key=${env.CG_API_KEY}`)).json();
 }
 
 async function handleRequest(request) {
@@ -13,12 +16,13 @@ async function handleRequest(request) {
         headers: { 'Access-Control-Allow-Origin': '*' },
       });
     } else {
+      const resp = await getPrice("banano,binancecoin,ethereum,polygon-ecosystem-token,fantom");
       return new Response(JSON.stringify({
-        ban: await getPrice("BANANOUSDT"),
-			  bnb: await getPrice("BNBUSDC"),
-			  eth: await getPrice("ETHUSDC"),
-			  matic: await getPrice("POLUSDC"),
-			  ftm: await getPrice("SUSDC"),
+        ban: resp["banano"].usd,//await getPrice("BANANOUSDT"),
+        bnb: resp["binancecoin"].usd,
+        eth: resp["ethereum"].usd,
+        matic: resp["polygon-ecosystem-token"].usd,
+        ftm: resp["fantom"].usd,
       }), {
         headers: { 'Content-type': 'application/json', 'Cache-control': 'max-age=30, public', 'Access-Control-Allow-Origin': '*' },
       });
